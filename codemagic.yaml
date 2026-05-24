@@ -1,0 +1,33 @@
+﻿workflows:
+  ios-workflow:
+    name: TrackR iOS
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    integrations:
+      app_store_connect: codemagic
+    environment:
+      ios_signing:
+        distribution_type: development
+        bundle_identifier: com.trackr.app
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Resolve Swift packages
+        script: |
+          cd TrackR
+          xcodebuild -resolvePackageDependencies -project TrackR.xcodeproj -scheme TrackR
+      - name: Build iOS
+        script: |
+          cd TrackR
+          xcodebuild \
+            -project TrackR.xcodeproj \
+            -scheme TrackR \
+            -sdk iphoneos \
+            -configuration Debug \
+            -derivedDataPath ~/DerivedData \
+            CODE_SIGN_STYLE=Automatic \
+            DEVELOPMENT_TEAM=$APPLE_TEAM_ID \
+            archive -archivePath ~/TrackR.xcarchive
+    artifacts:
+      - ~/TrackR.xcarchive/**
+      - ~/DerivedData/**/*.ipa
